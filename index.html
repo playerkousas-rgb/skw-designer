@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>童設計 - Scout Woggle Designer (靜態測試版)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- React + React DOM + Babel CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <style>
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#0F172A] text-slate-100 font-sans">
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // 以下是你從 Gemini COPY 的完整代碼（我已調整 import 與圖示寫法）
+    const { useState, useEffect, useRef } = React;
+
+    // --- Firebase 配置 --- (暫時註解，單檔無法用)
+    // const firebaseConfig = JSON.parse(__firebase_config); ...
+
+    // --- 常量與管理員配置 ---
+    const ADMIN_EMAIL = 'ai@skwscout.org.hk';
+    const VERSION = 'V2.4.9';
+
+    // --- 巾圈深度定義 ---
+    const WOGGLE_CORE_DEFINITION = `You are an expert in scouting uniform accessories. A scout woggle (also called neckerchief slide or scarf slide) is a FUNCTIONAL RING-SHAPED HOLDER specifically designed to secure a triangular scout neckerchief/scarf around the neck. It is ALWAYS a cylindrical, tubular, or looped structure with a central hole/channel large enough for the rolled/folded neckerchief ends to pass through and slide/adjust. It is NOT a flat pin, badge, brooch, medal, lapel pin, clip, or any back-attached jewelry. The design must emphasize 3D ring form, depth, thickness (usually 1-2cm thick/deep), smooth inner surface for sliding, and realistic holding of a fabric scarf.`;
+
+    // --- 多語言字典 --- (完整保留)
+    const TRANSLATIONS = {
+      zh: {
+        title: `童設計 ${VERSION}`,
+        tabs: { idea: '理念', color: '色彩', ref: '參考', craft: '工藝', tweak: '微調' },
+        fields: {
+          eventName: '活動名稱', textZh: '文字輸入欄(中)', textEn: '文字輸入欄(英)',
+          style: '風格', concept: '設計概念', colorControl: '色彩控制',
+          randomColor: '隨機色彩', refItem: '參考項目', upload: '上載檔案 (MAX 3)',
+          refPlaceholder: '輸入參考描述...', craftMenu: '工藝選單',
+          shapeMenu: '形狀選單', souvenirShapeMenu: '標誌形狀', souvenirType: '種類選單', custom: '自訂',
+          preciseLabel: '精確指示欄目', precisePlaceholder: '請輸入具體的修改指令...',
+          preciseExample: '💡 精確指示範例：', preciseTip: '「眼神更兇惡一點」、「爪更利一點」、「牙更長一點」、「字體更小一點」',
+          customCraftPlaceholder: '請自行輸入特定工藝...', customShapePlaceholder: '請自行輸入特定形狀...',
+          customTypePlaceholder: '請自行輸入特定種類...',
+          aiExpand: 'AI 視覺聯想', aiDraw: 'AI 繪圖'
+        },
+        categories: { badge: '徽章', necker: '巾圈', souvenir: '紀念品', custom: '自訂' },
+        buttons: {
+          genDesign: '生成設計圖', genMockup: '成品模擬', tweakDesign: '設計微調',
+          tweakMockup: '成品微調', viewDesign: '設計圖', viewMockup: '成品模擬',
+          view3d: '3D 預覽', gen3d: '3D 製作', waiting: '等待生成視圖', processing: 'AI 正在計算中...'
+        },
+        prompts: { design: '設計圖prompt', mockup: 'Mockup Prompt' }
+      },
+      en: {
+        title: `Scout Design ${VERSION}`,
+        tabs: { idea: 'Idea', color: 'Color', ref: 'Ref', craft: 'Craft', tweak: 'Adjust' },
+        fields: {
+          eventName: 'Event Name', textZh: 'Text (ZH)', textEn: 'Text (EN)',
+          style: 'Style', concept: 'Design Concept', colorControl: 'Color Control',
+          randomColor: 'Randomize', refItem: 'Reference Item', upload: 'Upload (MAX 3)',
+          refPlaceholder: 'Enter description...', craftMenu: 'Craft Menu',
+          shapeMenu: 'Shape Menu', souvenirShapeMenu: 'Logo Shape', souvenirType: 'Type Menu', custom: 'Custom',
+          preciseLabel: 'Precise Instructions', precisePlaceholder: 'Enter specific instructions...',
+          preciseExample: '💡 Example:', preciseTip: '"Fiercer eyes", "Sharper claws", "Longer teeth", "Smaller font"',
+          customCraftPlaceholder: 'Type custom craft...', customShapePlaceholder: 'Type custom shape...',
+          customTypePlaceholder: 'Type custom type...',
+          aiExpand: 'AI Visual Expansion', aiDraw: 'AI Drawing'
+        },
+        categories: { badge: 'Badge', necker: 'Woggle', souvenir: 'Souvenir', custom: 'Custom' },
+        buttons: {
+          genDesign: 'Generate Design', genMockup: 'Generate Mockup', tweakDesign: 'Tweak Design',
+          tweakMockup: 'Tweak Mockup', viewDesign: 'Design', viewMockup: 'Mockup',
+          view3d: '3D View', gen3d: '3D Maker', waiting: 'Waiting for Preview', processing: 'AI Processing...'
+        },
+        prompts: { design: 'Design Prompt', mockup: 'Mockup Prompt' }
+      }
+    };
+
+    const SHAPE_OPTIONS = ['圓形', '盾形/徽章形', '方形/矩形', '五角形', '異形/不規則形', '自訂'];
+
+    const CATEGORY_CONFIG = {
+      badge: {
+        crafts: ['機繡/電腦刺繡', '織嘜/織布章', '滴膠/軟膠徽章', '金屬實色琺瑯', '印刷布章', '自訂'],
+        shapes: SHAPE_OPTIONS,
+        types: ['徽章']
+      },
+      necker: {
+        crafts: ['Metal Plated (金屬鍍層)', 'Hard Enamel (硬琺瑯工藝)', 'Embossed Leather (真皮壓紋)', 'PVC Soft Touch (軟膠滴膠)', '3D Printed Resin (3D 打印樹脂)', '自訂'],
+        types: [
+          'Minimalist Mobius Loop (極簡莫比烏斯環)',
+          'Parametric Fluid Geometry (參數化流體幾何)',
+          'Bio-Organic Sculptural (仿生有機雕塑感)',
+          'Tectonic Layered Relief (構造層次浮雕)',
+          'Classical Cylindrical Ring (經典圓柱環)',
+          'Lattice Mesh Structure (網格交織結構)',
+          'Totemic Embossed totem (圖騰壓印)',
+          'Mechanical Clamp-lock (機械夾式結構)',
+          '自訂'
+        ],
+        shapes: ['Cylindrical Tube (圓柱管狀)', 'Hollow Ring (中空環形)', 'Tubular Holder (管狀固定器)', 'Möbius Loop (莫比烏斯環狀)', '自訂']
+      },
+      souvenir: {
+        crafts: ['絲網印刷 / 移印', '雷射雕刻', '熱轉印 / 數位直噴', '滴膠 / 軟琺瑯', '燙金 / 燙銀', 'UV 印刷', '沖壓 + 電鍍', '內雕 / 噴砂', '自訂'],
+        types: ['帆布袋 / 購物袋', '保溫瓶 / 水瓶', '原子筆 / 鋼珠筆', '鑰匙圈 / 匙扣', '環保吸管 / 餐具組', '筆記本 / 記事本', '手機支架 / 指環扣', '彩色胸章 / 徽章', '證件套 / 卡套', '杯墊 / 吸水墊', '隨身碟 / USB', '開瓶器 / 多功能工具', '水晶 / 玻璃擺飾', '利是封 / 揮春', '自訂'],
+        shapes: SHAPE_OPTIONS
+      },
+      custom: {
+        crafts: ['自訂'],
+        shapes: ['自訂'],
+        types: ['自訂']
+      }
+    };
+
+    const API_KEY = "";  // 單檔無法安全使用，暫留空
+
+    // 指數退避請求 (保留，但單檔無法真實呼叫)
+    const fetchWithRetry = async (url, options, retries = 5, backoff = 1000) => {
+      // ... 你的 fetchWithRetry 函數 ...
+    };
+
+    function App() {
+      const [user, setUser] = useState(null);
+      const [tier, setTier] = useState('low');
+      const [activeTab, setActiveTab] = useState('path1');
+      const [viewMode, setViewMode] = useState('clean');
+      const [language, setLanguage] = useState('zh');
+      const [selectedCategory, setSelectedCategory] = useState('badge');
+      const [colorCount, setColorCount] = useState(8);
+      const [colors, setColors] = useState(['#6366F1', '#3B82F6', '#2DD4BF', '#F472B6', '#E2E8F0', '#0F172A', '#F59E0B', '#EF4444', '#10B981', '#F97316', '#8B5CF6', '#EC4899', '#64748B', '#78350F', '#065F46', '#1E3A8A']);
+      const [isProcessing, setIsProcessing] = useState(false);
+      const [designImage, setDesignImage] = useState(null);
+      const [mockupImage, setMockupImage] = useState(null);
+      const [threeDImage, setThreeDImage] = useState(null);
+      const [designPrompt, setDesignPrompt] = useState('');
+      const [mockupPrompt, setMockupPrompt] = useState('');
+      const [useAIExpansion, setUseAIExpansion] = useState(true);
+      const [allowAIDraw, setAllowAIDraw] = useState(true);
+
+      const [whitelist, setWhitelist] = useState([]);
+      const [showAdminPanel, setShowAdminPanel] = useState(false);
+      const [newWhitelistedEmail, setNewWhitelistedEmail] = useState('');
+
+      const canvasRef = useRef(null);
+      const t = TRANSLATIONS[language];
+
+      const [formData, setFormData] = useState({
+        path1: { eventName: '', style: '', idea: '', textZh: '', textEn: '' },
+        path3: { files: [null, null, null], fileBase64s: [null, null, null], inputs: ['', '', ''] },
+        path4: { craft: '機繡/電腦刺繡', shape: '圓形', type: '徽章', customCraft: '', customShape: '', customType: '' },
+        path5: { preciseInstruction: '' }
+      });
+
+      // 以下是你的所有 useEffect、函數、return JSX（我已把 lucide-react 改成 data-lucide）
+      // ... 貼上你代碼的剩餘部分（從 useEffect 開始，到 return 的 JSX 結束）...
+
+      return (
+        <div className="min-h-screen bg-[#0F172A] text-slate-100 font-sans flex flex-col relative overflow-x-hidden">
+          {/* 這裡是你的完整 JSX，我只示範開頭與結尾，實際貼上時保留全部 */}
+          <header className="bg-slate-900 border-b border-slate-700 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+            <div className="flex items-center gap-3">
+              <div className="bg-cyan-500 p-1.5 rounded-lg shadow-lg"><i data-lucide="shield" className="w-5 h-5"></i></div>
+              <h1 className="text-lg font-black italic uppercase tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">{t.title}</h1>
+            </div>
+            {/* ... 你的 header 其他內容 ... */}
+          </header>
+          {/* ... 你的 main、tab 內容、按鈕、右側 prompt 區 ... */}
+        </div>
+      );
+    }
+
+    // 最後這兩行一定要有！
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>
