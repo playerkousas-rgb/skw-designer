@@ -1,73 +1,239 @@
-<script type="text/babel">
-  const { useState } = React;
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>童設計 - Scout Woggle Designer (測試版)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React + React DOM + Babel CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Lucide Icons UMD CDN（最穩定版本） -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  
+  <style>
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#0F172A] text-slate-100 font-sans">
 
-  // 移除 lucide-react import，改用 data-lucide
-  // 移除 Firebase 全部（單檔無法用）
-  // const ADMIN_EMAIL = 'ai@skwscout.org.hk';
-  const VERSION = 'V2.4.9';
+  <div id="root"></div>
 
-  const WOGGLE_CORE_DEFINITION = `You are an expert in scouting uniform accessories. A scout woggle (also called neckerchief slide or scarf slide) is a FUNCTIONAL RING-SHAPED HOLDER specifically designed to secure a triangular scout neckerchief/scarf around the neck. It is ALWAYS a cylindrical, tubular, or looped structure with a central hole/channel large enough for the rolled/folded neckerchief ends to pass through and slide/adjust. It is NOT a flat pin, badge, brooch, medal, lapel pin, clip, or any back-attached jewelry. The design must emphasize 3D ring form, depth, thickness (usually 1-2cm thick/deep), smooth inner surface for sliding, and realistic holding of a fabric scarf.`;
+  <script type="text/babel">
+    const { useState } = React;
 
-  const TRANSLATIONS = {
-    zh: {
-      title: `童設計 ${VERSION}`,
-      tabs: { idea: '理念', color: '色彩', ref: '參考', craft: '工藝', tweak: '微調' },
-      // ... 保留你原有的 fields, categories, buttons, prompts ...
-    },
-    en: { /* 同上 */ }
-  };
+    // 常量與定義（保留你原有的）
+    const VERSION = 'V2.4.9';
 
-  const SHAPE_OPTIONS = ['圓形', '盾形/徽章形', '方形/矩形', '五角形', '異形/不規則形', '自訂'];
+    const WOGGLE_CORE_DEFINITION = `You are an expert in scouting uniform accessories. A scout woggle (also called neckerchief slide or scarf slide) is a FUNCTIONAL RING-SHAPED HOLDER specifically designed to secure a triangular scout neckerchief/scarf around the neck. It is ALWAYS a cylindrical, tubular, or looped structure with a central hole/channel large enough for the rolled/folded neckerchief ends to pass through and slide/adjust. It is NOT a flat pin, badge, brooch, medal, lapel pin, clip, or any back-attached jewelry. The design must emphasize 3D ring form, depth, thickness (usually 1-2cm thick/deep), smooth inner surface for sliding, and realistic holding of a fabric scarf.`;
 
-  const CATEGORY_CONFIG = { /* 保留你原有的 config */ };
-
-  function App() {
-    const [language, setLanguage] = useState('zh');
-    const [selectedCategory, setSelectedCategory] = useState('necker');
-    const [colorCount, setColorCount] = useState(8);
-    const [colors, setColors] = useState(['#6366F1', '#3B82F6', '#2DD4BF', '#F472B6', '#E2E8F0', '#0F172A', '#F59E0B', '#EF4444']);
-    const [designPrompt, setDesignPrompt] = useState('');
-
-    const t = TRANSLATIONS[language];
-
-    const generatePrompt = () => {
-      const selectedColorsStr = colors.slice(0, colorCount).join(', ');
-      let prompt = `${WOGGLE_CORE_DEFINITION}\nProfessional 2D vector artwork for Scout Woggle.\n`;
-      prompt += `Category: ${selectedCategory} | Colors: ${selectedColorsStr}\n`;
-      prompt += `Shown as cylindrical ring holding rolled neckerchief. Pure white background.`;
-      setDesignPrompt(prompt);
+    const TRANSLATIONS = {
+      zh: {
+        title: `童設計 ${VERSION}`,
+        tabs: { idea: '理念', color: '色彩', ref: '參考', craft: '工藝', tweak: '微調' },
+        fields: {
+          eventName: '活動名稱', textZh: '文字輸入欄(中)', textEn: '文字輸入欄(英)',
+          style: '風格', concept: '設計概念', colorControl: '色彩控制',
+          randomColor: '隨機色彩', refItem: '參考項目', upload: '上載檔案 (MAX 3)',
+          refPlaceholder: '輸入參考描述...', craftMenu: '工藝選單',
+          shapeMenu: '形狀選單', souvenirShapeMenu: '標誌形狀', souvenirType: '種類選單', custom: '自訂',
+          preciseLabel: '精確指示欄目', precisePlaceholder: '請輸入具體的修改指令...',
+          preciseExample: '💡 精確指示範例：', preciseTip: '「眼神更兇惡一點」、「爪更利一點」、「牙更長一點」、「字體更小一點」',
+          customCraftPlaceholder: '請自行輸入特定工藝...', customShapePlaceholder: '請自行輸入特定形狀...',
+          customTypePlaceholder: '請自行輸入特定種類...',
+          aiExpand: 'AI 視覺聯想', aiDraw: 'AI 繪圖'
+        },
+        categories: { badge: '徽章', necker: '巾圈', souvenir: '紀念品', custom: '自訂' },
+        buttons: {
+          genDesign: '生成設計圖', genMockup: '成品模擬', tweakDesign: '設計微調',
+          tweakMockup: '成品微調', viewDesign: '設計圖', viewMockup: '成品模擬',
+          view3d: '3D 預覽', gen3d: '3D 製作', waiting: '等待生成視圖', processing: 'AI 正在計算中...'
+        },
+        prompts: { design: '設計圖prompt', mockup: 'Mockup Prompt' }
+      },
+      en: {
+        title: `Scout Design ${VERSION}`,
+        tabs: { idea: 'Idea', color: 'Color', ref: 'Ref', craft: 'Craft', tweak: 'Adjust' },
+        fields: {
+          eventName: 'Event Name', textZh: 'Text (ZH)', textEn: 'Text (EN)',
+          style: 'Style', concept: 'Design Concept', colorControl: 'Color Control',
+          randomColor: 'Randomize', refItem: 'Reference Item', upload: 'Upload (MAX 3)',
+          refPlaceholder: 'Enter description...', craftMenu: 'Craft Menu',
+          shapeMenu: 'Shape Menu', souvenirShapeMenu: 'Logo Shape', souvenirType: 'Type Menu', custom: 'Custom',
+          preciseLabel: 'Precise Instructions', precisePlaceholder: 'Enter specific instructions...',
+          preciseExample: '💡 Example:', preciseTip: '"Fiercer eyes", "Sharper claws", "Longer teeth", "Smaller font"',
+          customCraftPlaceholder: 'Type custom craft...', customShapePlaceholder: 'Type custom shape...',
+          customTypePlaceholder: 'Type custom type...',
+          aiExpand: 'AI Visual Expansion', aiDraw: 'AI Drawing'
+        },
+        categories: { badge: 'Badge', necker: 'Woggle', souvenir: 'Souvenir', custom: 'Custom' },
+        buttons: {
+          genDesign: 'Generate Design', genMockup: 'Generate Mockup', tweakDesign: 'Tweak Design',
+          tweakMockup: 'Tweak Mockup', viewDesign: 'Design', viewMockup: 'Mockup',
+          view3d: '3D View', gen3d: '3D Maker', waiting: 'Waiting for Preview', processing: 'AI Processing...'
+        },
+        prompts: { design: 'Design Prompt', mockup: 'Mockup Prompt' }
+      }
     };
 
-    return (
-      <div className="min-h-screen bg-[#0F172A] text-slate-100 font-sans">
-        <header className="bg-slate-900 border-b border-slate-700 px-6 py-4 flex justify-between">
-          <div className="flex items-center gap-3">
-            <i data-lucide="shield" className="w-5 h-5 bg-cyan-500 p-1.5 rounded-lg"></i>
-            <h1 className="text-lg font-black">{t.title}</h1>
-          </div>
-          <select value={language} onChange={e => setLanguage(e.target.value)} className="bg-slate-800 text-white p-2 rounded">
-            <option value="zh">繁體中文</option>
-            <option value="en">English</option>
-          </select>
-        </header>
+    const SHAPE_OPTIONS = ['圓形', '盾形/徽章形', '方形/矩形', '五角形', '異形/不規則形', '自訂'];
 
-        <main className="p-8">
-          <button onClick={generatePrompt} className="bg-cyan-600 px-6 py-3 rounded text-white font-bold">
-            生成設計 Prompt
-          </button>
-          <div className="mt-8 bg-slate-900 p-6 rounded">
-            <h2 className="text-cyan-400 mb-2">Generated Prompt:</h2>
-            <pre className="whitespace-pre-wrap text-sm">{designPrompt || '按鈕生成...'}</pre>
-          </div>
-        </main>
-      </div>
-    );
-  }
+    const CATEGORY_CONFIG = {
+      badge: {
+        crafts: ['機繡/電腦刺繡', '織嘜/織布章', '滴膠/軟膠徽章', '金屬實色琺瑯', '印刷布章', '自訂'],
+        shapes: SHAPE_OPTIONS,
+        types: ['徽章']
+      },
+      necker: {
+        crafts: ['Metal Plated (金屬鍍層)', 'Hard Enamel (硬琺瑯工藝)', 'Embossed Leather (真皮壓紋)', 'PVC Soft Touch (軟膠滴膠)', '3D Printed Resin (3D 打印樹脂)', '自訂'],
+        types: [
+          'Minimalist Mobius Loop (極簡莫比烏斯環)',
+          'Parametric Fluid Geometry (參數化流體幾何)',
+          'Bio-Organic Sculptural (仿生有機雕塑感)',
+          'Tectonic Layered Relief (構造層次浮雕)',
+          'Classical Cylindrical Ring (經典圓柱環)',
+          'Lattice Mesh Structure (網格交織結構)',
+          'Totemic Embossed totem (圖騰壓印)',
+          'Mechanical Clamp-lock (機械夾式結構)',
+          '自訂'
+        ],
+        shapes: ['Cylindrical Tube (圓柱管狀)', 'Hollow Ring (中空環形)', 'Tubular Holder (管狀固定器)', 'Möbius Loop (莫比烏斯環狀)', '自訂']
+      },
+      souvenir: {
+        crafts: ['絲網印刷 / 移印', '雷射雕刻', '熱轉印 / 數位直噴', '滴膠 / 軟琺瑯', '燙金 / 燙銀', 'UV 印刷', '沖壓 + 電鍍', '內雕 / 噴砂', '自訂'],
+        types: ['帆布袋 / 購物袋', '保溫瓶 / 水瓶', '原子筆 / 鋼珠筆', '鑰匙圈 / 匙扣', '環保吸管 / 餐具組', '筆記本 / 記事本', '手機支架 / 指環扣', '彩色胸章 / 徽章', '證件套 / 卡套', '杯墊 / 吸水墊', '隨身碟 / USB', '開瓶器 / 多功能工具', '水晶 / 玻璃擺飾', '利是封 / 揮春', '自訂'],
+        shapes: SHAPE_OPTIONS
+      },
+      custom: {
+        crafts: ['自訂'],
+        shapes: ['自訂'],
+        types: ['自訂']
+      }
+    };
 
-  const root = ReactDOM.createRoot(document.getElementById('root'));
-  root.render(<App />);
-</script>
+    function App() {
+      const [language, setLanguage] = useState('zh');
+      const [selectedCategory, setSelectedCategory] = useState('necker');
+      const [colorCount, setColorCount] = useState(8);
+      const [colors, setColors] = useState(['#6366F1', '#3B82F6', '#2DD4BF', '#F472B6', '#E2E8F0', '#0F172A', '#F59E0B', '#EF4444']);
+      const [designPrompt, setDesignPrompt] = useState('');
 
-<script>
-  lucide.createIcons();
-</script>
+      const t = TRANSLATIONS[language];
+
+      const generatePrompt = () => {
+        const selectedColorsStr = colors.slice(0, colorCount).join(', ');
+        let prompt = `${WOGGLE_CORE_DEFINITION}\n`;
+        prompt += `Professional 2D vector production artwork for Scout ${selectedCategory}. `;
+        prompt += `Colors: ${selectedColorsStr}. Pure white background. Minimalist flat design. `;
+        prompt += `Shown holding rolled triangular scout neckerchief if necker.`;
+        setDesignPrompt(prompt);
+      };
+
+      return (
+        <div className="min-h-screen bg-[#0F172A] text-slate-100 font-sans flex flex-col">
+          {/* 頂部 header */}
+          <header className="bg-slate-900 border-b border-slate-700 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+            <div className="flex items-center gap-3">
+              <div className="bg-cyan-500 p-1.5 rounded-lg shadow-lg">
+                <i data-lucide="shield" className="w-5 h-5"></i>
+              </div>
+              <h1 className="text-lg font-black italic uppercase tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                {t.title}
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <select 
+                value={language} 
+                onChange={(e) => setLanguage(e.target.value)}
+                className="bg-slate-800 text-white p-2 rounded text-sm"
+              >
+                <option value="zh">繁體中文</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+          </header>
+
+          {/* 主內容 - 簡化版，只保留核心生成 prompt */}
+          <main className="flex-1 p-8 flex flex-col items-center justify-center gap-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-4">童軍紀念巾圈設計工具</h2>
+              <p className="text-slate-300 mb-6">選擇類別、顏色後按生成，得到詳細 Prompt 給 AI 生圖工具使用</p>
+            </div>
+
+            <div className="w-full max-w-md bg-slate-800 p-6 rounded-xl shadow-lg">
+              <label className="block text-sm font-medium mb-2">類別</label>
+              <select 
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg text-white mb-4"
+              >
+                <option value="necker">巾圈 (Woggle)</option>
+                <option value="badge">徽章</option>
+                <option value="souvenir">紀念品</option>
+                <option value="custom">自訂</option>
+              </select>
+
+              <label className="block text-sm font-medium mb-2">顏色數量 ({colorCount})</label>
+              <input 
+                type="range" 
+                min="1" 
+                max="16" 
+                value={colorCount} 
+                onChange={(e) => setColorCount(parseInt(e.target.value))}
+                className="w-full accent-cyan-400"
+              />
+
+              <button 
+                onClick={generatePrompt}
+                className="mt-6 w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-lg transition"
+              >
+                生成設計 Prompt
+              </button>
+            </div>
+
+            {designPrompt && (
+              <div className="w-full max-w-2xl bg-slate-900 p-6 rounded-xl shadow-lg">
+                <h3 className="text-lg font-bold text-cyan-400 mb-3">生成的 Prompt：</h3>
+                <pre className="whitespace-pre-wrap text-sm text-slate-300 bg-slate-800 p-4 rounded border border-slate-700 overflow-auto max-h-96">
+                  {designPrompt}
+                </pre>
+                <button 
+                  onClick={() => navigator.clipboard.writeText(designPrompt)}
+                  className="mt-4 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded"
+                >
+                  複製 Prompt
+                </button>
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+
+  <!-- Lucide 初始化 - 確保載完再執行 -->
+  <script>
+    window.addEventListener('load', function() {
+      if (window.lucide) {
+        lucide.createIcons();
+        console.log('Lucide icons loaded successfully');
+      } else {
+        console.error('Lucide CDN failed to load');
+      }
+    });
+  </script>
+
+</body>
+</html>
